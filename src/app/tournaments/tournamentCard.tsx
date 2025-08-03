@@ -1,21 +1,22 @@
-type TournamentCardProps = {
-  tournament: {
-    tournamentName: string;
-    prizePool: number;
-    entryFees: number;
-    thumbnail?: string;
-    game?: string;
-    _id: string;
-  };
+import {
+  setSelectedTournament,
+  Tournament,
+} from "../../store/features/tournamentSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hook";
+
+type Props = {
+  tournament: Tournament;
 };
 
 import { useRouter } from "next/navigation";
 
-export default function TournamentCard({ tournament }: TournamentCardProps) {
+export default function TournamentCard({ tournament }: Props) {
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   function showTournamentDetails() {
-    router.push(`/tournaments/${tournament._id}`);
+    dispatch(setSelectedTournament(tournament));
+    router.push(`/tournaments/${tournament._id}`); // route to detail page
   }
 
   return (

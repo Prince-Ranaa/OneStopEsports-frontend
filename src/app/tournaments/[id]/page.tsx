@@ -1,54 +1,31 @@
 "use client";
 
-// import { useEffect, useState } from "react";
-// import { useParams } from "next/navigation";
+import { useAppSelector } from "../../../store/hook";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function TournamentDetails() {
-  //   const { id } = useParams();
-  //   const [tournament, setTournament] = useState<any>(null);
+  const selected = useAppSelector(
+    (state) => state.tournament.selectedTournament
+  );
+  const router = useRouter();
 
-  //   useEffect(() => {
-  //     async function fetchTournament() {
-  //       const res = await fetch(`http://localhost:4000/tournaments/${id}`);
-  //       const data = await res.json();
-  //       setTournament(data?.data);
-  //     }
-  //     if (id) fetchTournament();
-  //   }, [id]);
+  console.log(selected);
 
-  //   if (!tournament) return <p className="text-white">Loading...</p>;
+  useEffect(() => {
+    if (!selected) {
+      router.push("/tournaments"); // if someone visits directly, redirect
+    }
+  }, [selected, router]);
 
   return (
-    // <div className="text-white p-4 max-w-3xl mx-auto">
-    //   <h1 className="text-3xl font-bold mb-4">{tournament.tournamentName}</h1>
-    //   <img
-    //     src={tournament.thumbnail || "/default-thumbnail.jpg"}
-    //     alt="Tournament"
-    //     className="w-full h-64 object-cover rounded-lg mb-4"
-    //   />
-    //   <p>
-    //     <strong>Prize Pool:</strong> ₹{tournament.prizePool}
-    //   </p>
-    //   <p>
-    //     <strong>Entry Fees:</strong> ₹{tournament.entryFees}
-    //   </p>
-    //   <p>
-    //     <strong>Game:</strong> {tournament.game}
-    //   </p>
-    //   <p>
-    //     <strong>Start Date:</strong>{" "}
-    //     {new Date(tournament.startDate).toLocaleString()}
-    //   </p>
-    //   <div className="mt-4">
-    //     <h2 className="text-xl font-semibold">How to Apply</h2>
-    //     <p>{tournament.howToApply}</p>
-    //   </div>
-    //   <div className="mt-4">
-    //     <h2 className="text-xl font-semibold">Rules</h2>
-    //     <p>{tournament.rules}</p>
-    //   </div>
-    // </div>
-
-    <h1>tournament details page</h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold">{selected?.tournamentName}</h1>
+      <p>Prize Pool: ₹{selected?.prizePool}</p>
+      <p>Entry Fees: ₹{selected?.entryFees}</p>
+      <p>Start Date: {selected?.startDate}</p>
+      <p>Spots: {selected?.spots}</p>
+      {/* ...more fields */}
+    </div>
   );
 }
