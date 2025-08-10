@@ -13,6 +13,9 @@ export interface Tournament {
   startDate: string;
   status?: string;
   game?: String;
+  createdBy: String;
+  totalTeamRegistered: number;
+  registeredTeams: any;
 }
 
 interface TournamentState {

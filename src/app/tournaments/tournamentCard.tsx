@@ -27,11 +27,11 @@ export default function TournamentCard({ tournament }: Props) {
       {/* Thumbnail */}
       <div
         className="w-full h-[220px] bg-cover bg-center border-b border-gray-700"
-        style={{
-          backgroundImage: `url(${
-            tournament.thumbnail || "/default-thumbnail.jpg"
-          })`,
-        }}
+        // style={{
+        //   backgroundImage: `url(${
+        //     tournament.thumbnail || "/default-thumbnail.jpg"
+        //   })`,
+        // }}
       ></div>
 
       {/* Info Section */}
@@ -57,11 +57,17 @@ export default function TournamentCard({ tournament }: Props) {
             {tournament.game || "MLBB"}
           </span>
         </p>
+        <p className="text-sm text-gray-300">
+          🎮 Spots:{" "}
+          <span className="text-white font-semibold uppercase">
+            {tournament.totalTeamRegistered || 0} / {tournament.spots || 0}
+          </span>
+        </p>
 
         {/* Register Button */}
-        <button className="mt-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold py-2 rounded-lg hover:brightness-110 transition">
+        {/* <button className="mt-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold py-2 rounded-lg hover:brightness-110 transition">
           Register Now
-        </button>
+        </button> */}
       </div>
     </div>
   );

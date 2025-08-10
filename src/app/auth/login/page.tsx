@@ -2,8 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { setUser } from "@/store/features/authSlice";
+import { useAppDispatch } from "@/store/hook";
 
 export default function LoginPage() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,18 +37,20 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData), // using formData from state
+        body: JSON.stringify(formData),
+        credentials: "include",
       });
 
       const data = await response.json();
+      console.log(data);
+
+      dispatch(setUser(data.data));
 
       if (!response.ok) {
         throw new Error(data.message || "Login failed");
       }
 
-      console.log(data);
-
-      // router.push('/dashboard'); // Optional redirect
+      router.push("/");
     } catch (error: any) {
       alert(error.message || "Something went wrong");
     }
