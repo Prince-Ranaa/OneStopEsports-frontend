@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useAppSelector } from "../../../store/hook";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
+  const user = useAppSelector((state) => state.auth.user);
+
   return (
     <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center fixed top-0 left-0 w-full z-50">
       <Link href="/" className="text-xl font-bold text-blue-600">
@@ -18,9 +22,14 @@ export default function Navbar() {
         <Link href="/tournaments" className="hover:text-blue-500">
           Tournaments
         </Link>
-        <Link href="/auth/login" className="hover:text-blue-500">
-          Login
-        </Link>
+
+        {user ? (
+          <span>Profile</span>
+        ) : (
+          <Link href="/auth/login" className="hover:text-blue-500">
+            Log In
+          </Link>
+        )}
       </div>
     </nav>
   );
