@@ -11,7 +11,7 @@ export interface UserType {
 }
 
 interface AuthState {
-  user: UserType | null;
+  user: UserType | any;
 }
 
 const initialState: AuthState = {

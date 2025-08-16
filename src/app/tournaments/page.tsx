@@ -6,8 +6,11 @@ import { useAppDispatch, useAppSelector } from "../../store/hook";
 import {
   setTournaments,
   Tournament,
+  addTournament,
 } from "../../store/features/tournamentSlice";
-import Modal from "../components/ui/tournamnetModal";
+import Modal from "../components/ui/PopupModal";
+import InputField from "../components/ui/Input";
+import Stepper, { Step } from "../components/ui/stepper";
 
 export default function TournamentPage() {
   const dispatch = useAppDispatch();
@@ -16,47 +19,71 @@ export default function TournamentPage() {
 
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  const [form, setForm] = useState({
+  const [showStepper, setShowStepper] = useState(false);
+  const [initialformData, setInitialformData] = useState({
     tournamentName: "",
-    prizePool: 0,
-    entryFees: 0,
-    spots: 0,
+    prizePool: "",
+    thumbnail: "",
+    entryFees: "",
+    howToApply: "",
+    rules: "",
+    spots: "",
     startDate: "",
+    status: "",
+    game: "",
     createdBy: "",
   });
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [formData, setFormData] = useState(initialformData);
+  const [formErrors, setFormErrors] = useState<any>({});
+  const [step, setStep] = useState(0);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormErrors((prev: any) => ({
+      ...prev,
+      [name]: value ? false : prev[name],
+    }));
   };
 
-  const handleCreateTournament = async () => {
+  const handleSubmit = async () => {
     try {
-      form.createdBy = user!._id;
+      formData.createdBy = user!._id;
+
       const response = await fetch("http://localhost:4000/tournaments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
+
+      const data = await response.json(); // read response first
 
       if (!response.ok) {
-        throw new Error("Failed to create tournament");
+        // show backend error if provided
+        console.error(
+          "Failed to create tournament:",
+          data.message || "Unknown error"
+        );
+        return;
       }
 
-      // Optionally re-fetch or optimistically update the list here
-      setForm({
-        tournamentName: "",
-        prizePool: 0,
-        entryFees: 0,
-        spots: 0,
-        startDate: "",
-        createdBy: "",
-      });
-      setShowModal(false);
+      console.log(data);
+
+      if (data.success) {
+        const createdTournament = data.tournament;
+        dispatch(addTournament(createdTournament));
+      }
+
+      setFormData(initialformData);
+      setShowStepper(false);
+      setStep(0);
     } catch (error) {
       console.error("Error creating tournament:", error);
     }
@@ -90,6 +117,45 @@ export default function TournamentPage() {
 
   const isPrivileged = user?.role === "admin" || user?.role === "staff";
 
+  function closeStepper() {
+    setShowStepper(false);
+  }
+
+  const stepFields: Record<number, string[]> = {
+    0: [
+      "tournamentName",
+      "game",
+      "prizePool",
+      "entryFees",
+      "spots",
+      "startDate",
+    ],
+    1: ["howToApply", "rules"],
+  };
+
+  function validateForm() {
+    const errors: any = {};
+    const fields = stepFields[step];
+
+    fields.forEach((field) => {
+      const key = field as keyof typeof formData;
+      if (!formData[key]) errors[key] = true;
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors((prev: any) => ({
+        ...prev,
+        ...errors,
+      }));
+    }
+
+    console.log(formErrors);
+
+    if (Object.keys(errors).length === 0) {
+      setStep(step + 1);
+    }
+  }
+
   return (
     <div className="p-4">
       {/* Header */}
@@ -97,8 +163,11 @@ export default function TournamentPage() {
         <h2 className="text-xl font-semibold">Tournaments</h2>
         {isPrivileged && (
           <button
-            onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={() => {
+              setShowStepper(true);
+              setFormErrors({});
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
           >
             Create Tournament
           </button>
@@ -114,57 +183,157 @@ export default function TournamentPage() {
 
       {/* Modal */}
       {isPrivileged && (
-        <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
-          <h3 className="text-lg font-semibold mb-4">Create New Tournament</h3>
+        <Stepper
+          showStepper={showStepper}
+          onSubmit={handleSubmit}
+          closeStepper={closeStepper}
+          title={"Create Tournament"}
+          step={step}
+          validateForm={validateForm}
+          setStep={setStep}
+        >
+          <Step title="Tournament Details">
+            <div className="space-y-4 grid grid-cols-2 gap-4">
+              <InputField
+                label="Tournament Name"
+                type="text"
+                name="tournamentName"
+                value={formData.tournamentName}
+                onChange={handleChange}
+                placeholder="Tournament Name"
+                required
+                error={formErrors.tournamentName}
+              />
 
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="tournamentName"
-              placeholder="Tournament Name"
-              value={form.tournamentName}
-              onChange={handleFormChange}
-              className="p-2 border rounded"
-            />
-            <input
-              type="number"
-              name="prizePool"
-              placeholder="Prize Pool"
-              value={form.prizePool}
-              onChange={handleFormChange}
-              className="p-2 border rounded"
-            />
-            <input
-              type="number"
-              name="entryFees"
-              placeholder="Entry Fees"
-              value={form.entryFees}
-              onChange={handleFormChange}
-              className="p-2 border rounded"
-            />
-            <input
-              type="number"
-              name="spots"
-              placeholder="Spots"
-              value={form.spots}
-              onChange={handleFormChange}
-              className="p-2 border rounded"
-            />
-            <input
-              type="date"
-              name="startDate"
-              value={form.startDate}
-              onChange={handleFormChange}
-              className="p-2 border rounded"
-            />
-            <button
-              onClick={handleCreateTournament}
-              className="col-span-2 bg-green-600 text-white py-2 rounded hover:bg-green-700"
-            >
-              Submit
-            </button>
-          </div>
-        </Modal>
+              <InputField
+                type="text"
+                name="game"
+                value={formData.game}
+                onChange={handleChange}
+                placeholder="Game Name"
+                label="Game Name"
+                required
+                error={formErrors.game}
+              />
+
+              <InputField
+                type="number"
+                name="prizePool"
+                value={formData.prizePool}
+                onChange={handleChange}
+                placeholder="Enter Total Prize Pool"
+                label="Total Prize Pool"
+                required
+                error={formErrors.prizePool}
+              />
+
+              <InputField
+                type="number"
+                name="entryFees"
+                value={formData.entryFees}
+                onChange={handleChange}
+                placeholder="Enter Entry Fees"
+                label="Entry Fees"
+                required
+                error={formErrors.entryFees}
+              />
+
+              <InputField
+                type="number"
+                name="spots"
+                value={formData.spots}
+                onChange={handleChange}
+                placeholder="Enter Total Spots"
+                label="Total Spots"
+                required
+                error={formErrors.spots}
+              />
+
+              <InputField
+                type="text"
+                variant="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                placeholder="Start Date"
+                label="Start Date"
+                required
+                error={formErrors.startDate}
+              />
+            </div>
+          </Step>
+
+          <Step title="Rules and Regulations">
+            <div className="space-y-4">
+              <InputField
+                type="text"
+                name="rules"
+                value={formData.rules}
+                onChange={handleChange}
+                placeholder="Rules "
+                required
+                variant="textarea"
+                label="Rules of the tournament"
+                error={formErrors.rules}
+              />
+              <InputField
+                type="text"
+                name="howToApply"
+                value={formData.howToApply}
+                onChange={handleChange}
+                placeholder="How To Apply"
+                required
+                variant="textarea"
+                label="How To Apply"
+                error={formErrors.howToApply}
+              />
+            </div>
+          </Step>
+
+          <Step title="Review Details">
+            <div className="grid grid-cols-2 gap-4 mb-2">
+              <div>
+                <p>Tournament Name:</p>
+                <p> {formData.tournamentName}</p>
+              </div>
+
+              <div>
+                <p>Game Name:</p>
+                <p> {formData.game}</p>
+              </div>
+
+              <div>
+                <p>Entry Fees:</p>
+                <p> {formData.entryFees}</p>
+              </div>
+
+              <div>
+                <p>Prize Pool:</p>
+                <p> {formData.prizePool}</p>
+              </div>
+
+              <div>
+                <p>Total Spots:</p>
+                <p> {formData.spots}</p>
+              </div>
+
+              <div>
+                <p>Start Date:</p>
+                <p> {formData.startDate}</p>
+              </div>
+            </div>
+
+            <div className="mb-2">
+              <p>Rules And Regulations:</p>
+              <p> {formData.rules}</p>
+            </div>
+
+            <div>
+              <p>How To Apply:</p>
+              <p> {formData.howToApply}</p>
+            </div>
+          </Step>
+        </Stepper>
       )}
     </div>
   );

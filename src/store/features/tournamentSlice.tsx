@@ -20,7 +20,7 @@ export interface Tournament {
 
 interface TournamentState {
   tournaments: Tournament[];
-  selectedTournament: Tournament | null;
+  selectedTournament: Tournament | any;
 }
 
 const initialState: TournamentState = {
