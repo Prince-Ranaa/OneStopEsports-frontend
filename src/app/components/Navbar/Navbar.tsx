@@ -12,7 +12,7 @@ export default function Navbar() {
       <Link href="/" className="text-xl font-bold text-blue-600">
         MyApp
       </Link>
-      <div className="space-x-6">
+      <div className="space-x-6 flex border items-center">
         <Link href="/" className="hover:text-blue-500">
           Home
         </Link>
@@ -24,7 +24,7 @@ export default function Navbar() {
         </Link>
 
         {user ? (
-          <span>Profile</span>
+          <div className="w-[36px] h-[36px] rounded-full border"></div>
         ) : (
           <Link href="/auth/login" className="hover:text-blue-500">
             Log In

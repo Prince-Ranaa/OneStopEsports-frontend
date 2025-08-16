@@ -25,7 +25,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="py-14">
+      <body className="py-18">
         <ReduxProvider>
           <Navbar />
           {children}
